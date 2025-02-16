@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "ES2022",
+        "module": "ESNext",
+        "declaration": true,
+        "outDir": "./dist",
+        "strict": true,
+        "jsx": "react",
+        "esModuleInterop": true,
+        "moduleResolution": "node"
+    },
+    "include": [
+        "src"
+    ]
+}
