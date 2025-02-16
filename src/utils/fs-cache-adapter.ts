@@ -12,7 +12,7 @@ function getCacheFileName(key: string): string {
     return crypto.createHash("md5").update(key).digest("hex");
 }
 
-export class FileSystemCacheAdapter implements CacheAdapter {
+export class FSCacheAdapter implements CacheAdapter {
     private cacheDir: string;
 
     constructor(cacheDir: string) {
