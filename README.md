@@ -23,14 +23,14 @@ A robust image optimization library for Remix, inspired by Next.js’s `<Image /
 Install via npm:
 
 ```bash
-npm install remix-image-optimizer
+npm install remix-img
 ```
 
 ## Quick Start
 
 1. Configure the library
 
-Create (or modify) the config file `remix-image.config.ts` to specify your caching, allowed domains, and CDN settings.
+Create (or modify) the config file `remix-img.config.ts` to specify your caching, allowed domains, and CDN settings.
 
 ```jsx
 // remix-img.config.ts
@@ -127,7 +127,7 @@ The server-side image optimizer (in `server/optimizer.ts`) handles:
 
 ### Configuration Options
 
-The configuration file (`remix-image.config.ts`) lets you set:
+The configuration file (`remix-img.config.ts`) lets you set:
 
 -   **minimumCacheTTL**: Minimum cache time-to-live (in seconds).
 -   **allowedDomains**: An array of domains allowed for optimization.
@@ -178,10 +178,10 @@ This library implements a caching strategy similar to Next.js:
 4. **Test Locally**  
    Use `npm link` to link the library into your local Remix project:
     ```bash
-    cd remix-image-optimizer
+    cd remix-img
     npm link
     # In your Remix project:
-    npm link remix-image-optimizer
+    npm link remix-img
     ```
 
 ### Running Tests
