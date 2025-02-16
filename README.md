@@ -7,7 +7,7 @@ A robust image optimization library for Remix, inspired by Next.js’s `<Image /
 -   **Dynamic Image Optimization:** Uses [Sharp](https://sharp.pixelplumbing.com/) for server-side image processing.
 -   **Caching & Revalidation:**
     -   Optimizes images on-demand and caches them (default: `<distDir>/cache/images`).
-    -   Supports `x-nextjs-cache` header values: `MISS`, `STALE`, and `HIT`.
+    -   Supports `x-remix-img-cache` header values: `MISS`, `STALE`, and `HIT`.
     -   Implements stale-while-revalidate: serves stale images immediately while updating in the background.
 -   **Responsive Images:** Automatically generates `srcset` and `sizes` attributes based on configured device and image sizes.
 -   **Native Lazy Loading & Priority:** Leverages browser-native lazy loading with support for eager loading (`priority` prop).
@@ -64,7 +64,7 @@ This loader will:
 
 -   Check your custom (default is the file system, specify a custom adapter if you need for serverless environments, say).
 -   Process the image with Sharp on a cache MISS or when the cached image is STALE.
--   Serve the image with proper headers (e.g., `x-remixjs-cache` and `Cache-Control`).
+-   Serve the image with proper headers (e.g., `x-remix-img-cache` and `Cache-Control`).
 
 3. Use the Image component
 
@@ -122,7 +122,7 @@ The server-side image optimizer (in `server/optimizer.ts`) handles:
 -   Checking the cache for an optimized image.
 -   Processing the image using Sharp when necessary.
 -   Setting headers:
-    -   **`x-remixjs-cache`**: Indicates cache status (`MISS`, `STALE`, or `HIT`).
+    -   **`x-remix-img-cache`**: Indicates cache status (`MISS`, `STALE`, or `HIT`).
     -   **`Cache-Control`**: Instructs browsers/CDNs (e.g., `public, max-age=60, stale-while-revalidate=30`).
 
 ### Configuration Options
@@ -145,7 +145,7 @@ This library implements a caching strategy similar to Next.js:
     -   `STALE`: Cached image is expired; served immediately while revalidation occurs in the background.
     -   `HIT`: Cached image is fresh.
 -   **Headers:**
-    -   **`x-remixjs-cache`**: Indicates the cache status.
+    -   **`x-remix-img-cache`**: Indicates the cache status.
     -   **`Cache-Control`**: Configured as `public, max-age=<TTL>, stale-while-revalidate=<timeout>` to instruct downstream caches.
 
 ## Custom Loader & Error Handling
