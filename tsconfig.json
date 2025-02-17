@@ -2,14 +2,23 @@
     "compilerOptions": {
         "target": "ES2022",
         "module": "ESNext",
+        "lib": [
+            "ESNext",
+            "DOM"
+        ],
+        "skipLibCheck": true,
         "declaration": true,
         "outDir": "./dist",
         "strict": true,
         "jsx": "react",
         "esModuleInterop": true,
-        "moduleResolution": "node"
+        "moduleResolution": "node",
+        "resolveJsonModule": true
     },
     "include": [
         "src"
+    ],
+    "exclude": [
+        "node_modules"
     ]
 }
