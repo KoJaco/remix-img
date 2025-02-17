@@ -5,7 +5,7 @@ import fs from "fs";
 export const defaultConfig: RemixImageConfig = {
     minimumCacheTTL: 60, // 60 seconds TTL.
     staleWhileRevalidate: 30, // Allow 30 seconds of stale content.
-    allowedDomains: ["allowed.com", "cdn.allowed.com"],
+    allowedDomains: ["http://localhost:5173", "http://localhost:3000"],
     cacheDir: "./cache/images", // Default file system cache directory.
     defaultQuality: 75, // Default quality of 75 (scale 0-100).
     // I've made the defaults inline with Tailwind CSS's breakpoints...
@@ -21,14 +21,21 @@ export const defaultConfig: RemixImageConfig = {
 
 let userConfig: Partial<RemixImageConfig> = {};
 
-// try to load in config file (.remix-img.config.ts) in project root.
-const configPath = path.join(process.cwd(), ".remix-img.config.ts");
+// Check for both JS and TS config files.
+const possibleConfigFiles = [".remix-img.config.js", ".remix-img.config.ts"];
 
-if (fs.existsSync(configPath)) {
-    try {
-        userConfig = require(configPath);
-    } catch (error) {
-        console.error("Error loading .remix-img.config.ts", error);
+for (const fileName of possibleConfigFiles) {
+    // try to load in config file (.remix-img.config.ts) in project root.
+    const configPath = path.join(process.cwd(), fileName);
+
+    if (fs.existsSync(configPath)) {
+        try {
+            userConfig = require(configPath);
+            console.log(`Loaded user config from ${configPath}`);
+            break;
+        } catch (error) {
+            console.error("Error loading .remix-img.config.ts", error);
+        }
     }
 }
 
