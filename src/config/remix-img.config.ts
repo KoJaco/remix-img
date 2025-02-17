@@ -3,7 +3,7 @@ import type { RemixImageConfig } from "../types";
 const defaultConfig: RemixImageConfig = {
     minimumCacheTTL: 60, // 60 seconds TTL.
     staleWhileRevalidate: 30, // Allow 30 seconds of stale content.
-    allowedDomains: ["example.com", "cdn.example.com"],
+    allowedDomains: ["allowed.com", "cdn.allowed.com"],
     cacheDir: "./cache/images", // Default file system cache directory.
     defaultQuality: 75, // Default quality of 75 (scale 0-100).
     // I've made the defaults inline with Tailwind CSS's breakpoints...
