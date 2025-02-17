@@ -170,7 +170,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const transformationOptions = { width, height, quality, outputFormat };
 
     // 4. Generate a cache key for this image request
-    const cacheKey = generateCacheKey(src, transformationOptions);
+    const cacheKey = generateCacheKey(
+        resolvedSrc.toString(),
+        transformationOptions
+    );
 
     // 5. Define TTL and stale duration from config
     const ttl = config.minimumCacheTTL;
@@ -188,9 +191,12 @@ export async function loader({ request }: LoaderFunctionArgs) {
     } else if (cacheEntry) {
         // Cache is stale. Serve stale immediately and trigger background revalidation.
         cacheStatus = "STALE";
-        revalidateImage(cacheKey, src, transformationOptions, ttl).catch(
-            console.error
-        );
+        revalidateImage(
+            cacheKey,
+            resolvedSrc.toString(),
+            transformationOptions,
+            ttl
+        ).catch(console.error);
     } else {
         cacheStatus = "MISS";
     }
@@ -200,7 +206,10 @@ export async function loader({ request }: LoaderFunctionArgs) {
     // 8. Cache miss: process the image and cache it.
     if (!cacheEntry) {
         try {
-            imageBuffer = await processImage(src, transformationOptions);
+            imageBuffer = await processImage(
+                resolvedSrc.toString(),
+                transformationOptions
+            );
             await cacheAdapter.set(cacheKey, imageBuffer, ttl);
         } catch (error) {
             return new Response(`Error processing image: ${error}`, {
