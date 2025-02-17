@@ -1,6 +1,8 @@
+import path from "path";
 import type { RemixImageConfig } from "../types";
+import fs from "fs";
 
-const defaultConfig: RemixImageConfig = {
+export const defaultConfig: RemixImageConfig = {
     minimumCacheTTL: 60, // 60 seconds TTL.
     staleWhileRevalidate: 30, // Allow 30 seconds of stale content.
     allowedDomains: ["allowed.com", "cdn.allowed.com"],
@@ -17,4 +19,19 @@ const defaultConfig: RemixImageConfig = {
     },
 };
 
-export default defaultConfig;
+let userConfig: Partial<RemixImageConfig> = {};
+
+// try to load in config file (.remix-img.config.ts) in project root.
+const configPath = path.join(process.cwd(), ".remix-img.config.ts");
+
+if (fs.existsSync(configPath)) {
+    try {
+        userConfig = require(configPath);
+    } catch (error) {
+        console.error("Error loading .remix-img.config.ts", error);
+    }
+}
+
+const config: RemixImageConfig = { ...defaultConfig, ...userConfig };
+
+export default config;

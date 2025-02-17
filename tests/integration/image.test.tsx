@@ -2,7 +2,7 @@
 import React from "react";
 import { render, screen } from "@testing-library/react";
 import Image from "../../src/components/image";
-import defaultConfig from "../../src/config/remix-img.config";
+import { defaultConfig } from "../../src/config/remix-img.config";
 import path from "path";
 import fs from "fs";
 

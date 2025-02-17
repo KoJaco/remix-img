@@ -15,7 +15,7 @@
  *
  *
  */
-import defaultConfig from "../src/config/remix-img.config";
+import { defaultConfig } from "../src/config/remix-img.config";
 import { ImageProps } from "../src/types";
 import {
     buildOptimizedImageUrl,
