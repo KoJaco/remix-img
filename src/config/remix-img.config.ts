@@ -1,18 +1,4 @@
-import type { CacheAdapter, CDNConfig, CustomLoader } from "../types";
-
-export interface RemixImageConfig<TOptions = unknown> {
-    minimumCacheTTL: number; // should be in seconds
-    staleWhileRevalidate: number; // duration to serve stale images in seconds.
-    allowedDomains: string[];
-    cacheDir?: string; // Optional - cache directory for the file system adapter.
-    defaultQuality: number; // default image quality... say 75?
-    cacheAdapter?: CacheAdapter; // Optional - custom cache adapter
-    cdnConfig?: CDNConfig; // Optional CDN config
-    deviceSizes: number[];
-    imageSizes: number[];
-    formats: string[];
-    customLoader?: CustomLoader<TOptions>; // Optional custom loader function with generic options.
-}
+import type { RemixImageConfig } from "../types";
 
 const defaultConfig: RemixImageConfig = {
     minimumCacheTTL: 60, // 60 seconds TTL.
@@ -28,6 +14,9 @@ const defaultConfig: RemixImageConfig = {
     cdnConfig: {
         baseUrl: process.env.CDN_BASE_URL || "",
         apiKey: process.env.CDN_API_KEY || undefined,
+    },
+    logger: (msg, error) => {
+        console.error(msg, error);
     },
 };
 
