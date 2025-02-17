@@ -1,9 +1,9 @@
 import { CacheAdapter } from "./cache-adapter";
 
-export interface CDNConfig {
-    baseUrl: string; // Your CDN's base URL
-    apiKey?: string; // Optional - API key for the CDN
-}
+// export interface CDNConfig {
+//     baseUrl: string; // Your CDN's base URL
+//     apiKey?: string; // Optional - API key for the CDN
+// }
 
 // Generic type for custom loader options, defaults to unknown... should I just use any? At least allow users to define their own custom type for loader options.
 export type CustomLoader<TOptions = unknown> = (
@@ -18,7 +18,7 @@ export interface RemixImageConfig<TOptions = unknown> {
     cacheDir?: string; // Optional - cache directory for the file system adapter.
     defaultQuality: number; // default image quality... say 75?
     cacheAdapter?: CacheAdapter; // Optional - custom cache adapter
-    cdnConfig?: CDNConfig; // Optional CDN config
+    // cdnConfig?: CDNConfig; // Optional CDN config
     deviceSizes: number[];
     imageSizes: number[];
     formats: string[];

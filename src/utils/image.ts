@@ -13,6 +13,11 @@ export function buildOptimizedImageUrl(props: ImageProps): string {
         return props.src;
     }
 
+    const origin =
+        typeof window !== "undefined"
+            ? window.location.origin
+            : "http://localhost";
+
     // 1. If a custom loader is provided, convert width/quality to numbers.
 
     if (props.loader) {
@@ -32,7 +37,7 @@ export function buildOptimizedImageUrl(props: ImageProps): string {
     }
 
     // 2. Build URL for our /optimized-image endpoint.
-    const url = new URL("/optimized-image", window.location.origin);
+    const url = new URL("/optimized-image", origin);
     url.searchParams.set("src", props.src);
 
     // 3. If fill/layout mode is not used, include width/height.
@@ -78,7 +83,12 @@ export function buildOptimizedImageUrlForWidth(
     props: ImageProps,
     targetWidth: number
 ): string {
-    const url = new URL("/optimized-image", window.location.origin);
+    const origin =
+        typeof window !== "undefined"
+            ? window.location.origin
+            : "http://localhost";
+
+    const url = new URL("/optimized-image", origin);
     url.searchParams.set("src", props.src);
     url.searchParams.set("w", String(targetWidth));
     if (props.height) {

@@ -44,10 +44,6 @@ const config: RemixImgConfig = {
     deviceSizes: [640, 750, 828],
     imageSizes: [16, 32, 48, 64],
     formats: ["image/webp", "image/jpeg", "image/png"],
-    cdnConfig: {
-        baseUrl: process.env.CDN_BASE_URL || "",
-        apiKey: process.env.CDN_API_KEY || undefined,
-    },
 };
 
 export default config;
@@ -135,7 +131,7 @@ The configuration file (`remix-img.config.ts`) lets you set:
 -   **allowedDomains**: An array of domains allowed for optimization.
 -   **deviceSizes & imageSizes**: Arrays to control responsive image generation.
 -   **formats**: Supported output formats (e.g., `['image/webp', 'image/jpeg']`).
--   **cdnConfig**: Optional settings for CDN integration (base URL, API key).
+-   **cdnConfig**: Optional settings for CDN integration (base URL, API key). \*\* not implemented yet.
 -   **cacheAdapter**: Optionally, provide a custom cache adapter for environments like serverless or distributed systems.
 
 ## Caching & Revalidation

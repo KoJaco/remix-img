@@ -1,6 +1,6 @@
 export type { CacheEntry, CacheAdapter } from "./cache-adapter";
 export type {
-    CDNConfig,
+    // CDNConfig,
     CustomLoader,
     RemixImageConfig,
 } from "./remix-img-config";

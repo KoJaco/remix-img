@@ -11,10 +11,7 @@ const defaultConfig: RemixImageConfig = {
     deviceSizes: [640, 768, 1024, 1280, 1536],
     imageSizes: [16, 32, 48, 64], // Image sizes for layout-specific images (thumbnails, icons, etc...)
     formats: ["image/webp", "image/jpeg", "image/png"],
-    cdnConfig: {
-        baseUrl: process.env.CDN_BASE_URL || "",
-        apiKey: process.env.CDN_API_KEY || undefined,
-    },
+
     logger: (msg, error) => {
         console.error(msg, error);
     },
