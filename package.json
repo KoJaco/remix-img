@@ -2,6 +2,8 @@
     "name": "remix-img",
     "version": "0.1.0-beta.3",
     "description": "An image optimization library for Remix (Beta).",
+    "main": "dist/index.js",
+    "types": "dist/index.d.ts",
     "scripts": {
         "test": "jest",
         "build": "tsc"

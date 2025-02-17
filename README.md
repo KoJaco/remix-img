@@ -2,6 +2,8 @@
 
 A robust image optimization library for Remix, inspired by Next.js’s `<Image />` component. This library provides dynamic image optimization with server-side caching, native lazy loading, responsive image support, and customizable loaders. It’s designed to seamlessly integrate into your Remix app while offering full control over caching and revalidation strategies.
 
+-   Github [remix-img](https://github.com/KoJaco/remix-img)
+
 ## Features
 
 -   **Dynamic Image Optimization:** Uses [Sharp](https://sharp.pixelplumbing.com/) for server-side image processing.
