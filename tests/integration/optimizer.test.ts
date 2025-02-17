@@ -31,7 +31,7 @@ jest.mock("node-fetch", () => {
             // Return a valid jpg image as a buffer
             arrayBuffer: async () => {
                 // Read the actual image file from the test-data directory.
-                const filePath = path.join(__dirname, "data", "test-img.jpg");
+                const filePath = path.join(__dirname, "data", "test-lg.jpg");
                 const buffer = fs.readFileSync(filePath);
                 // Convert Buffer to ArrayBuffer
                 return buffer.buffer.slice(

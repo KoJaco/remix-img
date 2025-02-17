@@ -1,6 +1,6 @@
 import React, { forwardRef, useEffect, useRef, useState } from "react";
 import { ImageProps } from "../types/props";
-import { buildOptimizedImageUrl } from "../utils";
+import { buildOptimizedImageUrl, generateSrcSet } from "../utils";
 
 // Forward ref so that you can access underlying <img/> el
 const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
@@ -31,7 +31,18 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
     const finalSrc =
         overrideSrc || (unoptimized ? src : buildOptimizedImageUrl(props));
 
-    // 2. Determine lazy-loading strat
+    // 2. Generate srcSet and sizes only if not in fill mode.
+    const srcSet =
+        !fill && !(props.layout === "fill") ? generateSrcSet(props) : undefined;
+    const sizes =
+        srcSet && typeof width === "number"
+            ? `(max-width: ${width}px) 100vw, ${width}px`
+            : undefined;
+
+    console.log("srcSet", srcSet);
+    console.log("sizes", sizes);
+
+    // 3. Determine lazy-loading strat
     useEffect(() => {
         if (priority) {
             setImgSrc(finalSrc);
@@ -57,7 +68,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
         }
     }, [finalSrc, priority]);
 
-    // 3. Prepare styles. For fill/layout, set positioning.
+    // 4. Prepare styles. For fill/layout, set positioning.
     const imgStyle: React.CSSProperties = {
         ...props.style,
     };
@@ -113,6 +124,8 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
                 }
             }}
             onError={onError}
+            srcSet={srcSet}
+            sizes={sizes}
             {...rest} // spread in other props
             style={{
                 // Fade-in effect and blur until loaded, if placeholder provided.
