@@ -1,10 +1,6 @@
-import path from "path";
+// import path from "path";
 import type { RemixImageConfig } from "../types";
-import fs from "fs";
-import { createRequire } from "module";
-
-// Create our own require function using createRequire.
-const require = createRequire(import.meta.url);
+// import fs from "fs";
 
 export const defaultConfig: RemixImageConfig = {
     minimumCacheTTL: 60, // 60 seconds TTL.
@@ -25,23 +21,23 @@ export const defaultConfig: RemixImageConfig = {
 
 let userConfig: Partial<RemixImageConfig> = {};
 
-// Check for both JS and TS config files.
-const possibleConfigFiles = [".remix-img.config.js", ".remix-img.config.ts"];
+// // Check for both JS and TS config files.
+// const possibleConfigFiles = [".remix-img.config.js", ".remix-img.config.ts"];
 
-for (const fileName of possibleConfigFiles) {
-    // try to load in config file (.remix-img.config.ts) in project root.
-    const configPath = path.join(process.cwd(), fileName);
+// for (const fileName of possibleConfigFiles) {
+//     // try to load in config file (.remix-img.config.ts) in project root.
+//     const configPath = path.join(process.cwd(), fileName);
 
-    if (fs.existsSync(configPath)) {
-        try {
-            userConfig = require(configPath);
-            console.log(`Loaded user config from ${configPath}`);
-            break;
-        } catch (error) {
-            console.error("Error loading .remix-img.config.ts", error);
-        }
-    }
-}
+//     if (fs.existsSync(configPath)) {
+//         try {
+//             userConfig = require(configPath);
+//             console.log(`Loaded user config from ${configPath}`);
+//             break;
+//         } catch (error) {
+//             console.error("Error loading .remix-img.config.ts", error);
+//         }
+//     }
+// }
 
 const config: RemixImageConfig = { ...defaultConfig, ...userConfig };
 
