@@ -4,3 +4,4 @@ export type {
     CustomLoader,
     RemixImageConfig,
 } from "./remix-img-config";
+export { ImageProps } from "./props";
