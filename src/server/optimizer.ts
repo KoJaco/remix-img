@@ -2,12 +2,11 @@ import { LoaderFunctionArgs } from "@remix-run/node";
 import fetch from "node-fetch"; // used instead of fetch (Node 18+)
 import sharp from "sharp";
 import config from "../config/remix-img.config";
-import type { RemixImageConfig, CacheEntry } from "../types";
+import type { CacheEntry } from "../types";
 import {
     FSCacheAdapter,
     generateCacheKey,
     getImageContentType,
-    isAllowedDomain,
     parsePositiveInt,
 } from "../utils";
 

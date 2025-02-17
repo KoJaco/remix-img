@@ -1,6 +1,10 @@
 import path from "path";
 import type { RemixImageConfig } from "../types";
 import fs from "fs";
+import { createRequire } from "module";
+
+// Create our own require function using createRequire.
+const require = createRequire(import.meta.url);
 
 export const defaultConfig: RemixImageConfig = {
     minimumCacheTTL: 60, // 60 seconds TTL.
