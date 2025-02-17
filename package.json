@@ -1,14 +1,18 @@
 {
     "name": "remix-img",
-    "version": "0.1.0-beta.1",
+    "version": "0.1.0-beta.2",
     "description": "An image optimization library for Remix (Beta).",
     "scripts": {
         "test": "jest",
         "build": "tsc"
     },
     "keywords": [],
-    "author": "Kori Jacobsen | https://github.com/KoJaco",
+    "author": "Kori Jacobsen | https://github.com/KoJaco/remix-img",
     "license": "MIT",
+    "files": [
+        "dist",
+        "README.md"
+    ],
     "devDependencies": {
         "@testing-library/jest-dom": "^6.6.3",
         "@testing-library/react": "^16.2.0",
