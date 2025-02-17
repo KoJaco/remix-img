@@ -126,8 +126,14 @@ export async function loader({ request }: LoaderFunctionArgs) {
         return new Response("Missing image source", { status: 400 });
     }
 
-    if (!isAllowedDomain(src, config.allowedDomains)) {
-        return new Response("Domain not allowed", { status: 403 });
+    // Resolve the source URL using the request's URL as base
+    const resolvedSrc = new URL(src, request.url);
+    console.log(resolvedSrc);
+
+    if (!config.allowedDomains.includes(resolvedSrc.hostname)) {
+        return new Response(`Domain '${resolvedSrc.hostname}' not allowed`, {
+            status: 403,
+        });
     }
 
     // 3. Define image attributes and try parsing into transformationOptions
