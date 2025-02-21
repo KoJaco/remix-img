@@ -1,3 +1,7 @@
+if (typeof process === "undefined") {
+    (globalThis as any).process = { env: {} };
+}
+
 import path from "path";
 import type { RemixImageConfig } from "../types";
 import fs from "fs";
@@ -27,32 +31,22 @@ export const defaultConfig: RemixImageConfig = {
     cacheAdapter: undefined, // default will be created if undefined
 };
 
-let userConfig: Partial<RemixImageConfig> = {};
-const configPath = path.join(process.cwd(), ".remix-img.config.json");
+let config: RemixImageConfig = { ...defaultConfig };
 
-if (fs.existsSync(configPath)) {
-    try {
-        const raw = fs.readFileSync(configPath, "utf8");
-        const parsed = JSON.parse(raw);
+export function updateConfig(newConfig: Partial<RemixImageConfig>): void {
+    // validate incoming config against schema
+    const result = PartialRemixImageConfigSchema.safeParse(newConfig);
 
-        // validate against zod schema
-        const validated = PartialRemixImageConfigSchema.safeParse(parsed);
-
-        if (validated.success) {
-            userConfig = validated.data;
-            console.log(`Loaded user config from ${configPath}`);
-        } else {
-            console.error(
-                "User config validation errors: ",
-                validated.error.format()
-            );
-        }
-    } catch (error) {
-        console.error(`Error loading config from ${configPath}:`, error);
+    if (!result.success) {
+        console.error("Invalid configuration provided:", result.error.format());
+        return;
     }
+    config = { ...config, ...result.data };
+    console.log("Remix Image Optimizer config update:", config);
 }
 
-// Merge default config with validated user config, defaults to default.
-const config: RemixImageConfig = { ...defaultConfig, ...userConfig };
+export function getConfig(): RemixImageConfig {
+    return config;
+}
 
 export default config;

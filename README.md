@@ -2,6 +2,8 @@
 
 An image optimization library for Remix inspired by Next.js’s `<Image />` component. I built this library because I needed a working solution that offers dynamic image optimization with server-side processing, responsive images, lazy loading, and caching similar to Next.js Image. I deploy my projects on environments like Linode (with persistent storage) and Vercel (serverless), so the default file-system caching solution works well for my needs. Since I’m already using something very similar to this in my projects, I decided to package it as an easy-to-use library.
 
+-   Github Repo [remix-img](https://github.com/KoJaco/remix-img).
+
 > **Note:** This library is currently in beta.
 
 ## Features
@@ -43,20 +45,27 @@ npm install remix-img
 
 1. **Configure the Library**
 
-    Create (or modify) the config file in your project root. You can override defaults by adding a JSON configuration file named `.remix-img.config.json`. For example:
+    Modify your entry.server.ts (project entry) in your remix project with the following:
 
-    ```json
-    {
-        "allowedDomains": [
+    ```jsx
+    import { updateConfig } from "remix-img";
+
+    // override config
+    updateConfig({
+        allowedDomains: [
             "example.com",
             "cdn.example.com",
             "localhost",
-            "yourcustomdomain.com"
+            "mycustomdomain.com",
         ],
-        "defaultQuality": 85,
-        "cacheDir": ".cache/images",
-        "useEdgeCache": false
-    }
+        cacheDir: process.env.REMIX_IMG_CACHE_DIR || ".cache/images",
+        useEdgeCache: process.env.NODE_ENV === "production",
+        defaultQuality: process.env.DEFAULT_QUALITY
+            ? Number(process.env.DEFAULT_QUALITY)
+            : 85,
+    });
+
+    // ... rest of your entry.server.ts code
     ```
 
     The library loads these overrides and merges them with the default configuration.
