@@ -90,7 +90,7 @@ npm install remix-img
 
     Import and use the `<RemixImage>` component in your Remix routes or components:
 
-    ```tsx
+    ```jsx
     // app/routes/gallery.jsx
     import RemixImage from "remix-img/dist/components/remix-image";
 
@@ -103,6 +103,7 @@ npm install remix-img
                     alt="A sample image"
                     width={800}
                     height={600}
+                    sizes="(max-width: 768px) 100vw, 50vw" // custom sizes override
                     placeholder="blur" // Use a custom placeholder URL (auto-blur TODO)
                     loading="lazy" // Defaults to lazy loading
                     onError={(e) => console.error("Image failed to load", e)}
@@ -122,29 +123,69 @@ npm install remix-img
     The source URL of the image.
 
 -   **alt**: `string`  
-    Alt text for accessibility.
+    Alt text for the image, used for accessibility.
 
--   **width** & **height**: `number | string`  
-    The desired dimensions of the image.
+-   **width**: `number | string`  
+    The desired width of the image. Can be provided as a number (e.g. `800`) or as a string literal (e.g. `"800"`).
 
--   **placeholder**: `string` (optional)
+-   **height**: `number | string`  
+    The desired height of the image.
 
-    -   `"blur"`: Currently uses a custom URL placeholder (TODO: auto-generate a blurred placeholder).
-    -   Or a custom placeholder image URL.
+-   **fill**: `boolean`  
+    If true, the image will fill its container (ignoring explicit width/height).  
+    _Used for “fill” layout mode._
 
--   **loading**: `"lazy" | "eager"` (optional)  
-    Browser-native lazy loading or immediate load for priority images.
+-   **sizes**: `string`  
+    Allows the user to override the default `sizes` attribute on the `<img>` element.  
+    For example: `(max-width: 1200px) 100vw, 1200px`.
 
--   **onError**: `(event: Event) => void` (optional)  
-    Callback to handle load errors.
+-   **loader**: `(src: string, width: number, quality?: number) => string`  
+    Custom loader function that overrides the default URL builder for image optimization.
 
--   **customLoader**: `(src: string, width: number, quality?: number) => string` (optional)  
-    Override the default URL builder.
+-   **quality**: `number | string`  
+    The desired image quality (0–100). Accepts either a number or a string literal.
 
--   **useEdgeCache**: _Configured via the config file_  
-    When true, bypasses local caching to rely solely on CDN caching.
+-   **outputFormat**: `"auto" | "webp" | "jpeg" | "jpg" | "png"`  
+    Specifies the output format of the image. If set to `"auto"`, the original format is preserved (though our loader defaults to JPEG when auto is used).
 
--   _Plus additional props for layout (fill, intrinsic, etc.) and style overrides._
+-   **priority**: `boolean`  
+    If true, forces the image to load immediately (eager loading) rather than lazy loading.
+
+-   **loading**: `"eager" | "lazy"`  
+    Determines the browser’s native loading behavior. Defaults to `"lazy"` if not specified.
+
+-   **placeholder**: `"blur" | "empty" | string`  
+    Indicates how to handle the placeholder.
+
+    -   If set to `"blur"`, it currently requires a custom placeholder URL (TODO: auto-generate a blurred placeholder).
+    -   Otherwise, it can be a URL to a custom placeholder image or `"empty"`.
+
+-   **blurDataURL**: `string`  
+    A data URL for a pre-generated blurred placeholder image (planned for auto-generation in a future version).
+
+-   **unoptimized**: `boolean`  
+    If true, bypasses image optimization and returns the original image URL.
+
+-   **overrideSrc**: `string`  
+    If provided, this URL is used directly for the `<img>` element, completely bypassing optimization logic.
+
+-   **onLoadingComplete**: `(img: HTMLImageElement) => void`  
+    Callback function that is invoked once the image has fully loaded.
+
+-   **layout**: `"fill" | "fixed" | "intrinsic" | "responsive"`  
+    Determines the layout behavior of the image, similar to Next.js Image.
+
+-   **objectFit**: `React.CSSProperties["objectFit"]`  
+    CSS property for controlling how the image should be resized to fit its container (commonly used with `fill` layout).
+
+-   **objectPosition**: `React.CSSProperties["objectPosition"]`  
+    CSS property for positioning the image within its container.
+
+-   **lazyBoundary**: `string`  
+    Defines the boundary for lazy loading.
+
+-   **lazyRoot**: `Element | null`  
+    Specifies the root element for lazy loading (useful for advanced lazy loading configurations).
 
 ### Server-Side Loader
 

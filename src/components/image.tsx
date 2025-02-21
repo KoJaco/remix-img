@@ -10,6 +10,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
         width,
         height,
         fill,
+        sizes,
         layout,
         priority,
         loading,
@@ -34,10 +35,13 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
     // 2. Generate srcSet and sizes only if not in fill mode.
     const srcSet =
         !fill && !(props.layout === "fill") ? generateSrcSet(props) : undefined;
-    const sizes =
-        srcSet && typeof width === "number"
+
+    const defaultSizes =
+        typeof width === "number"
             ? `(max-width: ${width}px) 100vw, ${width}px`
             : undefined;
+
+    const sizesAttr = sizes || defaultSizes;
 
     // 3. Determine lazy-loading strat
     useEffect(() => {
@@ -122,7 +126,7 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
             }}
             onError={onError}
             srcSet={srcSet}
-            sizes={sizes}
+            sizes={sizesAttr}
             {...rest} // spread in other props
             style={{
                 // Fade-in effect and blur until loaded, if placeholder provided.
