@@ -1,24 +1,35 @@
-# Remix Image Optimizer
+# Remix Img
 
-A robust image optimization library for Remix, inspired by Next.js’s `<Image />` component. This library provides dynamic image optimization with server-side caching, native lazy loading, responsive image support, and customizable loaders. It’s designed to seamlessly integrate into your Remix app while offering full control over caching and revalidation strategies.
+An image optimization library for Remix inspired by Next.js’s `<Image />` component. I built this library because I needed a working solution that offers dynamic image optimization with server-side processing, responsive images, lazy loading, and caching similar to Next.js Image. I deploy my projects on environments like Linode (with persistent storage) and Vercel (serverless), so the default file-system caching solution works well for my needs. Since I’m already using something very similar to this in my projects, I decided to package it as an easy-to-use library.
 
--   Github [remix-img](https://github.com/KoJaco/remix-img)
+> **Note:** This library is currently in beta.
 
 ## Features
 
--   **Dynamic Image Optimization:** Uses [Sharp](https://sharp.pixelplumbing.com/) for server-side image processing.
+-   **Dynamic Image Optimization:**  
+    Uses [Sharp](https://sharp.pixelplumbing.com/) for on-demand image processing (resizing, format conversion, and optimization).
+
 -   **Caching & Revalidation:**
-    -   Optimizes images on-demand and caches them (default: `<distDir>/cache/images`).
-    -   Supports `x-remix-img-cache` header values: `MISS`, `STALE`, and `HIT`.
-    -   Implements stale-while-revalidate: serves stale images immediately while updating in the background.
--   **Responsive Images:** Automatically generates `srcset` and `sizes` attributes based on configured device and image sizes.
--   **Native Lazy Loading & Priority:** Leverages browser-native lazy loading with support for eager loading (`priority` prop).
--   **Fallback Placeholder & Blur-Up:**
-    -   Optional blurred placeholder (data URL) for a smooth image loading experience.
-    -   Custom fallback placeholder in case of image load errors.
--   **Custom Loader Support:** Allows you to plug in your own loader function to tailor image processing.
--   **CDN Integration:** Configure your own CDN (via environment variables or a custom adapter) if needed.
--   **Error Handling:** Built-in error callbacks and support for fallback images.
+
+    -   Optimizes images on-demand and caches them using a file-system based adapter (default: `.cache/images`).
+    -   Mimics Next.js’s caching strategy by storing each image variant in its own subdirectory with a unique filename and accompanying metadata.
+    -   Supports smart cache headers (e.g. `x-remix-img-cache`: `MISS`, `STALE`, or `HIT`) and uses `Cache-Control` headers (`public, max-age=<TTL>, stale-while-revalidate=<timeout>`) so that downstream caches (or CDNs) can quickly serve images.
+    -   Includes a config flag (`useEdgeCache`) that allows bypassing local caching to rely solely on CDN caching in serverless environments.
+
+-   **Responsive Images:**  
+    Automatically generates `srcset` and `sizes` attributes based on configured device sizes, ensuring the browser downloads the optimal image for the viewport.
+
+-   **Native Lazy Loading & Priority:**  
+    Leverages browser-native lazy loading with an IntersectionObserver fallback and supports eager loading for priority images.
+
+-   **Fallback Placeholder & Blur-Up:**  
+    Supports providing a custom placeholder image. (TODO: Implement auto-generated blurred placeholders.)
+
+-   **Custom Loader Support:**  
+    Allows you to plug in your own loader function to tailor image processing if desired.
+
+-   **Pluggable Caching:**  
+    Exposes a cache adapter interface so that you can replace the default file-system cache with a custom adapter (e.g., one that uses S3, Cloudflare KV, or a hybrid cache like `@next-boost/hybrid-disk-cache` for more robust production use).
 
 ## Installation
 
@@ -30,128 +41,158 @@ npm install remix-img
 
 ## Quick Start
 
-1. Configure the library
+1. **Configure the Library**
 
-Create (or modify) the config file `remix-img.config.ts` to specify your caching, allowed domains, and CDN settings.
+    Create (or modify) the config file in your project root. You can override defaults by adding a JSON configuration file named `.remix-img.config.json`. For example:
 
-```jsx
-// remix-img.config.ts
-import { RemixImgConfig } from "remix-img";
+    ```json
+    {
+        "allowedDomains": [
+            "example.com",
+            "cdn.example.com",
+            "localhost",
+            "yourcustomdomain.com"
+        ],
+        "defaultQuality": 85,
+        "cacheDir": ".cache/images",
+        "useEdgeCache": false
+    }
+    ```
 
-const config: RemixImgConfig = {
-    minimumCacheTTL: 60, // Cache TTL in seconds
-    allowedDomains: ["example.com", "cdn.example.com"],
-    deviceSizes: [640, 750, 828],
-    imageSizes: [16, 32, 48, 64],
-    formats: ["image/webp", "image/jpeg", "image/png"],
-};
+    The library loads these overrides and merges them with the default configuration.
 
-export default config;
-```
+2. **Add Server-Side Image Optimization**
 
-2. Add Server-Side image optimization
+    In your Remix App, create a route that points to the image optimizer loader. For example, in `app/routes/optimized-image.ts`:
 
-In your Remix App, create a route that points to the image optimization loader. E.g., in `app/routes/optimized-image.$imageUrl.ts`:
+    ```ts
+    // app/routes/optimized-image.ts
+    import { loader as imageLoader } from "remix-img/dist/server/optimized-image";
+    export { loader } from "remix-img/dist/server/optimized-image";
+    ```
 
-```bash
-import {loader as imageLoader} from 'remix-img/server/optimizer';
-const loader = imageLoader;
-```
+    This loader:
 
-This loader will:
+    - Validates the image URL and allowed domains.
+    - Processes the image using Sharp (on a cache MISS or stale condition).
+    - Leverages caching (or bypasses it if `useEdgeCache` is true) and sets smart Cache-Control headers.
 
--   Check your custom (default is the file system, specify a custom adapter if you need for serverless environments, say).
--   Process the image with Sharp on a cache MISS or when the cached image is STALE.
--   Serve the image with proper headers (e.g., `x-remix-img-cache` and `Cache-Control`).
+3. **Use the Image Component**
 
-3. Use the Image component
+    Import and use the `<RemixImage>` component in your Remix routes or components:
 
-Import and use the `<Image />` component in your Remix routes or components:
+    ```tsx
+    // app/routes/gallery.jsx
+    import RemixImage from "remix-img/dist/components/remix-image";
 
-```jsx
-// app/routes/gallery.jsx
-import RemixImage from "remix-img/components/RemixImage";
+    export default function Gallery() {
+        return (
+            <div>
+                <h1>Gallery</h1>
+                <RemixImage
+                    src="https://example.com/my-image.jpg"
+                    alt="A sample image"
+                    width={800}
+                    height={600}
+                    placeholder="blur" // Use a custom placeholder URL (auto-blur TODO)
+                    loading="lazy" // Defaults to lazy loading
+                    onError={(e) => console.error("Image failed to load", e)}
+                />
+            </div>
+        );
+    }
+    ```
 
-export default function Gallery() {
-    return (
-        <div>
-            <RemixImage
-                src="https://example.com/my-image.jpg"
-                alt="A sample image"
-                width={800}
-                height={600}
-                placeholder="blur" // Use a blurred data URL placeholder
-                loading="lazy" // Browser-native lazy loading; use "eager" for priority images
-                onError={(e) => console.error("Image failed to load", e)}
-                // Optionally, pass a customLoader function to override default behavior
-            />
-        </div>
-    );
-}
-```
+    With the updated package entry point (see next section), you can import directly from `remix-img` (see below).
 
 ## API Reference
 
-### `<Image />` Component Props
+### `<RemixImage>` Component Props
 
 -   **src**: `string`  
     The source URL of the image.
+
 -   **alt**: `string`  
     Alt text for accessibility.
--   **width**: `number`  
-    Desired image width.
--   **height**: `number`  
-    Desired image height.
+
+-   **width** & **height**: `number | string`  
+    The desired dimensions of the image.
+
 -   **placeholder**: `string` (optional)
-    -   `"blur"`: Use a blurred, data URL-based placeholder.
-    -   Custom data URL string for a custom placeholder.
--   **loading**: `string` (optional)
-    -   `"lazy"` (default): Browser-native lazy loading.
-    -   `"eager"`: Loads the image immediately (useful for above-the-fold images).
+
+    -   `"blur"`: Currently uses a custom URL placeholder (TODO: auto-generate a blurred placeholder).
+    -   Or a custom placeholder image URL.
+
+-   **loading**: `"lazy" | "eager"` (optional)  
+    Browser-native lazy loading or immediate load for priority images.
+
 -   **onError**: `(event: Event) => void` (optional)  
-    Callback to handle image load errors.
--   **customLoader**: `(src: string, options?: any) => Promise<string>` (optional)  
-    Custom function to override default image processing logic.
+    Callback to handle load errors.
+
+-   **customLoader**: `(src: string, width: number, quality?: number) => string` (optional)  
+    Override the default URL builder.
+
+-   **useEdgeCache**: _Configured via the config file_  
+    When true, bypasses local caching to rely solely on CDN caching.
+
+-   _Plus additional props for layout (fill, intrinsic, etc.) and style overrides._
 
 ### Server-Side Loader
 
-The server-side image optimizer (in `server/optimizer.ts`) handles:
+The optimizer loader (in `server/optimized-image.ts`) handles:
 
--   Checking the cache for an optimized image.
--   Processing the image using Sharp when necessary.
--   Setting headers:
-    -   **`x-remix-img-cache`**: Indicates cache status (`MISS`, `STALE`, or `HIT`).
-    -   **`Cache-Control`**: Instructs browsers/CDNs (e.g., `public, max-age=60, stale-while-revalidate=30`).
+-   Domain validation.
+-   Processing the image using Sharp.
+-   Caching via a pluggable cache adapter (default is a file-system adapter that stores each variant in its own subdirectory).
+-   Setting smart Cache-Control headers (`public, max-age=<TTL>, stale-while-revalidate=<timeout>`) and a custom `x-remix-img-cache` header.
 
 ### Configuration Options
 
-The configuration file (`remix-img.config.ts`) lets you set:
-
--   **minimumCacheTTL**: Minimum cache time-to-live (in seconds).
--   **allowedDomains**: An array of domains allowed for optimization.
--   **deviceSizes & imageSizes**: Arrays to control responsive image generation.
--   **formats**: Supported output formats (e.g., `['image/webp', 'image/jpeg']`).
--   **cdnConfig**: Optional settings for CDN integration (base URL, API key). \*\* not implemented yet.
--   **cacheAdapter**: Optionally, provide a custom cache adapter for environments like serverless or distributed systems.
+-   **minimumCacheTTL**: Number (seconds)
+-   **staleWhileRevalidate**: Number (seconds)
+-   **allowedDomains**: `string[]`
+-   **cacheDir**: Directory path for caching (default: `.cache/images`)
+-   **defaultQuality**: Number (0-100)
+-   **deviceSizes & imageSizes**: `number[]` – Used for generating responsive `srcset`
+-   **formats**: `string[]` – Supported output formats
+-   **cdnConfig**: Optional CDN settings (not fully implemented yet)
+-   **useEdgeCache**: Boolean – If true, bypasses local caching in favor of edge/CDN caching
+-   **cacheAdapter**: Optionally, users can supply a custom adapter implementing the `CacheAdapter` interface.
+-   **Custom Config File:**  
+    Users can override defaults by creating a `.remix-img.config.json` file at the project root.
 
 ## Caching & Revalidation
 
-This library implements a caching strategy similar to Next.js:
+-   **Caching Strategy:**  
+    Mimics Next.js’s approach by storing each image variant in its own subdirectory.
 
--   **Cache Status:**
-    -   `MISS`: First-time request; image is processed and cached.
-    -   `STALE`: Cached image is expired; served immediately while revalidation occurs in the background.
-    -   `HIT`: Cached image is fresh.
--   **Headers:**
-    -   **`x-remix-img-cache`**: Indicates the cache status.
-    -   **`Cache-Control`**: Configured as `public, max-age=<TTL>, stale-while-revalidate=<timeout>` to instruct downstream caches.
+    -   **MISS:** First-time processing and caching.
+    -   **STALE:** Cached image is outdated; served immediately while revalidated in the background.
+    -   **HIT:** Cached image is fresh.
 
-## Custom Loader & Error Handling
+-   **Smart Cache Headers:**  
+    The response includes:
 
--   **Custom Loader:**  
-    If the default image processing doesn’t suit your needs, supply a custom loader via the `customLoader` prop. Your custom loader should accept the image URL (and optional transformation options) and return a URL or data representing the optimized image.
--   **Error Handling:**  
-    Use the `onError` prop to manage any issues during image load — e.g., switching to an alternative source or logging errors.
+    -   `Cache-Control: public, max-age=<TTL>, stale-while-revalidate=<timeout>`
+    -   `x-remix-img-cache`: Indicates the cache status.
+
+-   **Pluggable Cache Adapter:**  
+    The default is a file-system adapter (ideal for persistent environments like Linode/VMs). For serverless deployments (e.g. Vercel), a custom adapter can be provided to offload caching to an external service or rely on CDN caching (controlled via the `useEdgeCache` flag).
+
+## Limitations & TODO
+
+-   **Support Environment Variables:**
+    At the moment users can override config using a .json file. I need to implement support for using environment variables for config options like `useEdgeCase`, `cdnConfig`, and `cacheDir`.
+-   **Caching in Serverless:**  
+    The default file-system caching is not ideal for serverless environments due to ephemeral storage. A more robust hybrid solution (similar to [@next-boost/hybrid-disk-cache](https://github.com/next-boost/hybrid-disk-cache)) would be needed for production-level serverless deployments.
+-   **Custom Cache Adapter:**  
+    Future improvements include allowing users to easily plug in external storage (like S3, Cloudflare KV, or Redis) for caching.
+-   **Auto-Generated Blur Placeholder:**  
+    Currently, the library accepts a placeholder URL. Future versions should auto-generate a blurred placeholder (e.g., a base64 data URL).
+-   **Extended CDN Integration:**  
+    Further enhancements may include better integration with edge networks and more configurable cache headers.
+-   **Testing and Edge Cases:**
+    I need to do further testing and identify bugs from edge cases before I can take the project out of beta.
 
 ## Development
 
@@ -161,19 +202,15 @@ This library implements a caching strategy similar to Next.js:
    Clone the repository to your local machine.
 2. **Install Dependencies**  
    Run:
-
     ```bash
     npm install
     ```
-
 3. **Build the Library**  
    Compile the TypeScript:
-
     ```bash
     npm run build
     ```
-
-4. **Test Locally**  
+4. **Link Locally**  
    Use `npm link` to link the library into your local Remix project:
     ```bash
     cd remix-img
@@ -181,14 +218,23 @@ This library implements a caching strategy similar to Next.js:
     # In your Remix project:
     npm link remix-img
     ```
+5. **Run Tests**  
+   Execute:
+    ```bash
+    npm test
+    ```
 
-### Running Tests
+### Running in a Remix Project
 
-Tests ensure the core functionality works as expected. Run tests with:
+In your Remix app, create a route for the image optimizer (e.g., `app/routes/optimized-image.ts`) and import the loader from the library:
 
-```bash
-npm test
+```ts
+// app/routes/optimized-image.ts
+import { loader } from "remix-img/dist/server/optimized-image";
+export { loader };
 ```
+
+Then, use the `<RemixImage>` component in your routes as described above.
 
 ## Contributing
 
@@ -209,4 +255,3 @@ This project is licensed under the [MIT License](LICENSE).
 
 -   Inspired by Next.js’s `<Image />` component.
 -   Uses [Sharp](https://sharp.pixelplumbing.com/) for efficient image processing.
--   Thanks to the Remix community for continued inspiration and support.

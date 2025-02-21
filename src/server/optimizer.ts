@@ -127,7 +127,6 @@ export async function loader({ request }: LoaderFunctionArgs) {
 
     // Resolve the source URL using the request's URL as base
     const resolvedSrc = new URL(src, request.url);
-    console.log(resolvedSrc);
 
     if (!config.allowedDomains.includes(resolvedSrc.hostname)) {
         return new Response(`Domain '${resolvedSrc.hostname}' not allowed`, {
@@ -180,49 +179,54 @@ export async function loader({ request }: LoaderFunctionArgs) {
     const staleWhileRevalidate = config.staleWhileRevalidate;
 
     // Caching stuff, follow Next/image behaviour: https://nextjs.org/docs/pages/api-reference/components/image#caching-behavior
-    // 6. Check the cache for an entry
-    let cacheEntry: CacheEntry | null = await cacheAdapter.get(cacheKey);
-    let cacheStatus = "";
 
-    // 7. Determine if the cached image is valid
-    if (cacheEntry && cacheEntry.expiration > Date.now()) {
-        // Fresh cache entry
-        cacheStatus = "HIT";
-    } else if (cacheEntry) {
-        // Cache is stale. Serve stale immediately and trigger background revalidation.
-        cacheStatus = "STALE";
-        revalidateImage(
-            cacheKey,
-            resolvedSrc.toString(),
-            transformationOptions,
-            ttl
-        ).catch(console.error);
-    } else {
-        cacheStatus = "MISS";
+    // 6. determine edge caching or not
+    let cacheEntry: CacheEntry | null = null;
+
+    if (!config.useEdgeCache) {
+        // If we're not falling back on edge caching, use our FSCacheAdapter.
+        const cacheAdapter = new FSCacheAdapter(config.cacheDir);
+        cacheEntry = await cacheAdapter.get(cacheKey);
+        if (cacheEntry && cacheEntry.expiration <= Date.now()) {
+            // cache is stale, trigger reval in the background
+            revalidateImage(
+                cacheKey,
+                resolvedSrc.toString(),
+                transformationOptions,
+                ttl
+            ).catch(console.error);
+        }
     }
 
     let imageBuffer: Buffer;
 
-    // 8. Cache miss: process the image and cache it.
     if (!cacheEntry) {
         try {
             imageBuffer = await processImage(
                 resolvedSrc.toString(),
                 transformationOptions
             );
-            await cacheAdapter.set(cacheKey, imageBuffer, ttl);
+
+            if (!config.useEdgeCache) {
+                const cacheAdapter = new FSCacheAdapter(config.cacheDir);
+                await cacheAdapter.set(cacheKey, imageBuffer, ttl, {
+                    format:
+                        transformationOptions.outputFormat !== "auto"
+                            ? transformationOptions.outputFormat
+                            : "jpeg",
+                });
+            }
         } catch (error) {
             return new Response(`Error processing image: ${error}`, {
                 status: 500,
             });
         }
     } else {
-        // 9. Use the cached (or stale) image buffer.
         imageBuffer = cacheEntry.data;
     }
 
-    // 10. determine content type
-    let finalFormat = "jpeg"; // TODO: probably provide a default format in config?
+    let finalFormat = "jpeg";
+
     if (
         transformationOptions.outputFormat &&
         transformationOptions.outputFormat !== "auto"
@@ -230,17 +234,23 @@ export async function loader({ request }: LoaderFunctionArgs) {
         finalFormat = transformationOptions.outputFormat;
     }
 
-    // 10. Build the response headers
     const headers = new Headers();
-    headers.set("Content-Type", getImageContentType(finalFormat));
-
-    // 11. Cache-Control header for downstream clients & CDNs:
+    headers.set(
+        "Content-Type",
+        getImageContentType(finalFormat, resolvedSrc.toString())
+    );
     headers.set(
         "Cache-Control",
         `public, max-age=${ttl}, stale-while-revalidate=${staleWhileRevalidate}`
     );
-    // Custom header indicating the cache status.
-    headers.set("x-remix-img-cache", cacheStatus);
+    headers.set(
+        "x-remix-img-cache",
+        cacheEntry
+            ? cacheEntry.expiration > Date.now()
+                ? "HIT"
+                : "STALE"
+            : "MISS"
+    );
 
     return new Response(imageBuffer, { headers });
 }

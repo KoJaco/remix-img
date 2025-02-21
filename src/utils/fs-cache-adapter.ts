@@ -8,9 +8,21 @@ import type { CacheAdapter, CacheEntry } from "../types";
  * @param key - The unique cache key.
  * @returns The hashed file name.
  */
-function getCacheFileName(key: string): string {
+function getCacheId(key: string): string {
     return crypto.createHash("md5").update(key).digest("hex");
 }
+
+/**
+ *
+ * File-system cache adapter that stores each variant in its own subdirectory like Next/Image
+ *
+ * Dir structure:
+ *  .cache/images/
+ *      <identifier>/
+ *          <timestamp>.<randomHash>.<format>   // optimized img file
+ *          meta.json                           // metadata with expiration && filename
+ *
+ */
 
 export class FSCacheAdapter implements CacheAdapter {
     private cacheDir: string;
@@ -27,13 +39,21 @@ export class FSCacheAdapter implements CacheAdapter {
     }
 
     /**
-     * Construct paths for cached data and metadata.
+     * Checks whether a cached entry exists for a given key.
+     * @param key - The cache key.
+     * @returns A Promise resolving to the CacheEntry or null if not found.
      */
-    private getPaths(key: string): { dataPath: string; metaPath: string } {
-        const fileName = getCacheFileName(key);
-        const dataPath = path.join(this.cacheDir, `${fileName}.cache`);
-        const metaPath = path.join(this.cacheDir, `${fileName}.meta.json`);
-        return { dataPath, metaPath };
+    async has(key: string): Promise<boolean> {
+        const id = getCacheId(key);
+        const variantDir = path.join(this.cacheDir, id);
+        const metaPath = path.join(variantDir, "meta.json");
+
+        try {
+            await fs.access(metaPath);
+            return true;
+        } catch {
+            return false;
+        }
     }
 
     /**
@@ -42,16 +62,21 @@ export class FSCacheAdapter implements CacheAdapter {
      * @returns A Promise resolving to the CacheEntry or null if not found.
      */
     async get(key: string): Promise<CacheEntry | null> {
-        const { dataPath, metaPath } = this.getPaths(key);
+        const id = getCacheId(key);
+        const variantDir = path.join(this.cacheDir, id);
+
         try {
             // Read metadata file first.
+            const metaPath = path.join(variantDir, "meta.json");
             const metaData = await fs.readFile(metaPath, "utf-8");
-            const { expiration } = JSON.parse(metaData) as {
+            const { expiration, imageFilename } = JSON.parse(metaData) as {
                 expiration: number;
+                imageFilename: string;
             };
 
             // Read cached data.
-            const data = await fs.readFile(dataPath);
+            const imagePath = path.join(variantDir, imageFilename);
+            const data = await fs.readFile(imagePath);
             return { data, expiration };
         } catch (err) {
             // If files are missing or an error occurs, treat as cache miss.
@@ -64,12 +89,48 @@ export class FSCacheAdapter implements CacheAdapter {
      * @param key - The cache key.
      * @param data - The image data as a Buffer.
      * @param ttl - Time-to-live in seconds.
+     * @param options - Optional obj with the image format ("jpeg, "webp", etc)
      */
-    async set(key: string, data: Buffer, ttl: number): Promise<void> {
-        const { dataPath, metaPath } = this.getPaths(key);
+    async set(
+        key: string,
+        data: Buffer,
+        ttl: number,
+        options?: { format: string }
+    ): Promise<void> {
+        const id = getCacheId(key);
+        const variantDir = path.join(this.cacheDir, id);
+
+        try {
+            await fs.mkdir(variantDir, { recursive: true });
+        } catch (error) {
+            console.error(`Error is attempting to make dir: ${variantDir}`);
+        }
+
         const expiration = Date.now() + ttl * 1000;
-        await fs.writeFile(dataPath, data);
-        await fs.writeFile(metaPath, JSON.stringify({ expiration }));
+        const timestamp = Date.now();
+        const randomHash = crypto.randomBytes(16).toString("hex");
+        const format = options?.format || "jpeg"; // default to jpeg?
+        const imageFilename = `${timestamp}.${randomHash}.${format}`;
+        const imagePath = path.join(variantDir, imageFilename);
+
+        try {
+            await fs.writeFile(imagePath, data);
+        } catch (error) {
+            console.error(
+                `Error is attempting to write file with path: ${imagePath}`
+            );
+        }
+
+        const meta = { expiration, imageFilename };
+        const metaPath = path.join(variantDir, "meta.json");
+
+        try {
+            await fs.writeFile(metaPath, JSON.stringify(meta));
+        } catch (error) {
+            console.error(
+                `Error is attempting to write file with path: ${metaPath}`
+            );
+        }
     }
 
     /**
@@ -78,10 +139,16 @@ export class FSCacheAdapter implements CacheAdapter {
      * @param key - The cache key.
      * @param data - The updated image data.
      * @param ttl - New TTL in seconds.
+     * @param options -
      */
-    async update(key: string, data: Buffer, ttl: number): Promise<void> {
+    async update(
+        key: string,
+        data: Buffer,
+        ttl: number,
+        options?: { format: string }
+    ): Promise<void> {
         // In our simple adapter, update is the same as set (overwrite).
-        return this.set(key, data, ttl);
+        return this.set(key, data, ttl, options);
     }
 
     /**
@@ -89,12 +156,15 @@ export class FSCacheAdapter implements CacheAdapter {
      * @param key - The cache key.
      */
     async delete(key: string): Promise<void> {
-        const { dataPath, metaPath } = this.getPaths(key);
-        // Remove both the data and metadata files
-        // Ignore errors if they don't exist
-        await Promise.all([
-            fs.unlink(dataPath).catch(() => {}),
-            fs.unlink(metaPath).catch(() => {}),
-        ]);
+        const id = getCacheId(key);
+        const variantDir = path.join(this.cacheDir, id);
+
+        try {
+            await fs.rm(variantDir, { recursive: true, force: true });
+        } catch (error) {
+            console.error(
+                `Error attempting to remove image '${id}' from variant dir '${variantDir}'.`
+            );
+        }
     }
 }

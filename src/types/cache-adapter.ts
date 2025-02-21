@@ -36,4 +36,11 @@ export interface CacheAdapter {
      * @param key - The unique identifier for the cached image.
      */
     delete: (key: string) => Promise<void>;
+
+    /**
+     * Check whether a cached entry exists for a given key.
+     * @param key - The unique identifier for the cached image.
+     */
+
+    has?: (key: string) => Promise<boolean>;
 }
