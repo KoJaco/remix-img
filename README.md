@@ -45,7 +45,7 @@ npm install remix-img
 
 1. **Configure the Library**
 
-    Modify your entry.server.ts (project entry) in your remix project with the following:
+    Modify your entry.server.tsx (project entry) in your remix project with the following:
 
     ```jsx
     import { updateConfig } from "remix-img";

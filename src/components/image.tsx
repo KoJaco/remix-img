@@ -39,9 +39,6 @@ const Image = forwardRef<HTMLImageElement, ImageProps>((props, ref) => {
             ? `(max-width: ${width}px) 100vw, ${width}px`
             : undefined;
 
-    console.log("srcSet", srcSet);
-    console.log("sizes", sizes);
-
     // 3. Determine lazy-loading strat
     useEffect(() => {
         if (priority) {
