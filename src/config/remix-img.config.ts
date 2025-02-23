@@ -1,18 +1,11 @@
-if (typeof process === "undefined") {
-    (globalThis as any).process = { env: {} };
-}
-
-import path from "path";
 import type { RemixImageConfig } from "../types";
-import fs from "fs";
-import { PartialRemixImageConfigSchema } from "./schema";
 
-// TODO: Support environment variables for config options.
+import { PartialRemixImageConfigSchema } from "./schema";
 
 export const defaultConfig: RemixImageConfig = {
     minimumCacheTTL: 60, // 60 seconds TTL.
     staleWhileRevalidate: 30, // Allow 30 seconds of stale content.
-    allowedDomains: ["cdn.example.com", "localhost", "example.com"],
+    allowedDomains: [],
     cacheDir: "./cache/images", // Default file system cache directory.
     defaultQuality: 75, // Default quality of 75 (scale 0-100).
     // I've made the defaults inline with Tailwind CSS's breakpoints...
@@ -41,7 +34,8 @@ export function updateConfig(newConfig: Partial<RemixImageConfig>): void {
         console.error("Invalid configuration provided:", result.error.format());
         return;
     }
-    config = { ...config, ...result.data };
+    // Update in place
+    Object.assign(config, result.data);
     console.log("Remix Image Optimizer config update:", config);
 }
 

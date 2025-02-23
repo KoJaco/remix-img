@@ -1,6 +1,8 @@
 import path from "path";
 import fs from "fs";
 import { loader } from "../../src/server/optimizer";
+import { getConfig, updateConfig } from "../../src/config/remix-img.config";
+import { RemixImageConfig } from "../../src/types";
 
 /**
  * Integration test should:
@@ -68,11 +70,15 @@ describe("Loader Function Integration", () => {
         });
         expect(response.status).toBe(403);
         const text = await response.text();
-        expect(text).toMatch(/Domain not allowed/);
+        expect(text).toMatch("Domain 'disallowed.com' not allowed");
     });
 
     test("processes an image and returns headers", async () => {
-        // assume "allowed.com" is in allowedDomains.
+        // Update the config
+        updateConfig({
+            allowedDomains: ["allowed.com"],
+        });
+
         const req = createMockRequest(
             "src=https://allowed.com/image.jpg&w=800&h=600&q=80&f=webp"
         );

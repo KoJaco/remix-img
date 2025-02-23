@@ -15,7 +15,7 @@
  *
  *
  */
-import { defaultConfig } from "../src/config/remix-img.config";
+import { defaultConfig, updateConfig } from "../src/config/remix-img.config";
 import { ImageProps } from "../src/types";
 import {
     buildOptimizedImageUrl,
@@ -98,9 +98,7 @@ describe("Image Utils", () => {
 
     describe("generateSrcSet", () => {
         it("generates a srcset string with candidate widths", () => {
-            // For testing, temporarily override config.deviceSizes.
-            const originalDeviceSizes = defaultConfig.deviceSizes;
-            defaultConfig.deviceSizes = [320, 480, 640];
+            updateConfig({ deviceSizes: [320, 480, 640] });
 
             const srcset = generateSrcSet(defaultProps);
             const candidates = srcset
@@ -111,15 +109,15 @@ describe("Image Utils", () => {
             candidates.forEach((candidate, index) => {
                 // Each candidate should be in the format: <url> <width>w
                 const [urlPart, descriptor] = candidate.split(" ");
-                expect(descriptor).toBe(`${defaultConfig.deviceSizes[index]}w`);
+                expect(descriptor).toBe(`${[320, 480, 640][index]}w`);
                 const url = new URL(urlPart);
                 expect(url.searchParams.get("w")).toBe(
-                    String(defaultConfig.deviceSizes[index])
+                    String([320, 480, 640][index])
                 );
             });
 
             // Restore original device sizes.
-            defaultConfig.deviceSizes = originalDeviceSizes;
+            updateConfig({ deviceSizes: [640, 768, 1024, 1280, 1536] });
         });
     });
 });
