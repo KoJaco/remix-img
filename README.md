@@ -52,6 +52,7 @@ npm install remix-img
 
     // override config
     updateConfig({
+        baseUrl: "http://localhost:5173", // Match your dev base url so that both SSR and client generate the same urls.
         allowedDomains: [
             "example.com",
             "cdn.example.com",

@@ -5,6 +5,7 @@ import { PartialRemixImageConfigSchema } from "./schema";
 export const defaultConfig: RemixImageConfig = {
     minimumCacheTTL: 60, // 60 seconds TTL.
     staleWhileRevalidate: 30, // Allow 30 seconds of stale content.
+    baseUrl: "",
     allowedDomains: [],
     cacheDir: "./cache/images", // Default file system cache directory.
     defaultQuality: 75, // Default quality of 75 (scale 0-100).

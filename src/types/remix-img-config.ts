@@ -14,6 +14,7 @@ export type CustomLoader<TOptions = unknown> = (
 export interface RemixImageConfig<TOptions = unknown> {
     minimumCacheTTL: number; // should be in seconds
     staleWhileRevalidate: number; // duration to serve stale images in seconds.
+    baseUrl?: string; // used for constructing optimized image URLS
     allowedDomains: string[];
     cacheDir: string; // Optional - cache directory for the file system adapter.
     defaultQuality: number; // default image quality... say 75?

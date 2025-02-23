@@ -15,7 +15,7 @@
  *
  *
  */
-import { defaultConfig, updateConfig } from "../src/config/remix-img.config";
+import { updateConfig } from "../src/config/remix-img.config";
 import { ImageProps } from "../src/types";
 import {
     buildOptimizedImageUrl,
@@ -30,6 +30,13 @@ const defaultProps: ImageProps = {
     height: 400,
     quality: 80,
 };
+
+// Jest/jsdom falling back to origin without the port.
+
+Object.defineProperty(window, "location", {
+    value: { origin: "http://localhost:5173" },
+    writable: true,
+});
 
 describe("Image Utils", () => {
     describe("buildOptimizedImageUrl", () => {
@@ -118,6 +125,31 @@ describe("Image Utils", () => {
 
             // Restore original device sizes.
             updateConfig({ deviceSizes: [640, 768, 1024, 1280, 1536] });
+        });
+    });
+
+    describe("generateSrcSet with baseUrl", () => {
+        it("Should generate srcset URLs using the provided baseUrl", () => {
+            const base = "http://localhost:5173";
+
+            updateConfig({ baseUrl: base });
+
+            const props: ImageProps = {
+                src: "https://someid.supabase.co/storage/v1/object/public/dir/subdir/img.webp",
+                alt: "Test image",
+                width: 1600,
+                height: 900,
+                outputFormat: "auto",
+            };
+
+            const srcset = generateSrcSet(props);
+
+            // all candidate urls in the srcset should start with the provided baseUrl
+            srcset.split(",").forEach((candidate) => {
+                expect(candidate.trim().startsWith(base)).toBe(true);
+            });
+
+            updateConfig({ baseUrl: "" });
         });
     });
 });

@@ -9,14 +9,14 @@ import config from "../config/remix-img.config";
  */
 
 export function buildOptimizedImageUrl(props: ImageProps): string {
+    // use config.baseUrl if provided, else use window.location.origin or request.url as fallback
+    const base =
+        config.baseUrl ||
+        (typeof window !== "undefined" ? window.location.origin : "");
+
     if (props.unoptimized) {
         return props.src;
     }
-
-    const origin =
-        typeof window !== "undefined"
-            ? window.location.origin
-            : "http://localhost";
 
     // 1. If a custom loader is provided, convert width/quality to numbers.
 
@@ -32,12 +32,12 @@ export function buildOptimizedImageUrl(props: ImageProps): string {
                 ? props.quality
                 : props.quality
                 ? parseInt(props.quality as string, 10)
-                : 75;
+                : config.defaultQuality;
         return props.loader(props.src, w, q);
     }
 
     // 2. Build URL for our /optimized-image endpoint.
-    const url = new URL("/optimized-image", origin);
+    const url = new URL("/optimized-image", base);
     url.searchParams.set("src", props.src);
 
     // 3. If fill/layout mode is not used, include width/height.
@@ -68,7 +68,7 @@ export function buildOptimizedImageUrl(props: ImageProps): string {
     }
 
     // 5. For now, we always pass "auto" as the output format.
-    url.searchParams.set("f", "auto");
+    url.searchParams.set("f", props.outputFormat || "auto");
     return url.toString();
 }
 
@@ -83,12 +83,11 @@ export function buildOptimizedImageUrlForWidth(
     props: ImageProps,
     targetWidth: number
 ): string {
-    const origin =
-        typeof window !== "undefined"
-            ? window.location.origin
-            : "http://localhost";
+    const base =
+        config.baseUrl ||
+        (typeof window !== "undefined" ? window.location.origin : "");
 
-    const url = new URL("/optimized-image", origin);
+    const url = new URL("/optimized-image", base);
     url.searchParams.set("src", props.src);
     url.searchParams.set("w", String(targetWidth));
     if (props.height) {
