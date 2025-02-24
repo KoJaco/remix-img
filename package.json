@@ -1,6 +1,6 @@
 {
     "name": "remix-img",
-    "version": "0.1.0-beta.19",
+    "version": "0.1.1-beta",
     "description": "An image optimization library for Remix (Beta).",
     "main": "./dist/server/index.js",
     "module": "./dist/client/index.js",
