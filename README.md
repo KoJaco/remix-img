@@ -77,8 +77,8 @@ npm install remix-img
 
     ```ts
     // app/routes/optimized-image.ts
-    import { loader as imageLoader } from "remix-img/dist/server/optimized-image";
-    export { loader } from "remix-img/dist/server/optimized-image";
+    import { loader as imageLoader } from "remix-img/server";
+    export { loader };
     ```
 
     This loader:
@@ -93,7 +93,7 @@ npm install remix-img
 
     ```jsx
     // app/routes/gallery.jsx
-    import RemixImage from "remix-img/dist/components/remix-image";
+    import Image from "remix-img/client";
 
     export default function Gallery() {
         return (
@@ -201,6 +201,7 @@ The optimizer loader (in `server/optimized-image.ts`) handles:
 
 -   **minimumCacheTTL**: Number (seconds)
 -   **staleWhileRevalidate**: Number (seconds)
+-   **baseUrl**: `string`
 -   **allowedDomains**: `string[]`
 -   **cacheDir**: Directory path for caching (default: `.cache/images`)
 -   **defaultQuality**: Number (0-100)
@@ -274,18 +275,6 @@ The optimizer loader (in `server/optimized-image.ts`) handles:
     ```bash
     npm test
     ```
-
-### Running in a Remix Project
-
-In your Remix app, create a route for the image optimizer (e.g., `app/routes/optimized-image.ts`) and import the loader from the library:
-
-```ts
-// app/routes/optimized-image.ts
-import { loader } from "remix-img/dist/server/optimized-image";
-export { loader };
-```
-
-Then, use the `<RemixImage>` component in your routes as described above.
 
 ## Contributing
 
