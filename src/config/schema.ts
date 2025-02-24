@@ -3,6 +3,7 @@ import { z } from "zod";
 export const RemixImageConfigSchema = z.object({
     minimumCacheTTL: z.number().min(0).optional(),
     staleWhileRevalidate: z.number().min(0).optional(),
+    baseUrl: z.string().optional(),
     allowedDomains: z.array(z.string()).optional(),
     cacheDir: z.string().optional(),
     defaultQuality: z.number().min(0).max(100).optional(),

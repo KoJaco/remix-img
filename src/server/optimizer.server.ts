@@ -4,11 +4,11 @@ import sharp from "sharp";
 import config from "../config/remix-img.config";
 import type { CacheEntry } from "../types";
 import {
-    FSCacheAdapter,
     generateCacheKey,
     getImageContentType,
     parsePositiveInt,
 } from "../utils";
+import { FSCacheAdapter } from "./fs-cache-adapter.server";
 
 // Instantiate default cache adapter
 const cacheAdapter =

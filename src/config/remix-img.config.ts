@@ -37,7 +37,7 @@ export function updateConfig(newConfig: Partial<RemixImageConfig>): void {
     }
     // Update in place
     Object.assign(config, result.data);
-    console.log("Remix Image Optimizer config update:", config);
+    // console.log("Remix Image Optimizer config update:", config);
 }
 
 export function getConfig(): RemixImageConfig {

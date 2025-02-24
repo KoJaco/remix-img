@@ -10,12 +10,22 @@ import config from "../config/remix-img.config";
 
 export function buildOptimizedImageUrl(props: ImageProps): string {
     // use config.baseUrl if provided, else use window.location.origin or request.url as fallback
-    const base =
-        config.baseUrl ||
-        (typeof window !== "undefined" ? window.location.origin : "");
 
-    if (props.unoptimized) {
-        return props.src;
+    let base: string;
+
+    if (config.baseUrl && config.baseUrl.trim() !== "") {
+        base = config.baseUrl;
+    } else if (
+        typeof window !== "undefined" &&
+        window.location &&
+        window.location.origin
+    ) {
+        base = window.location.origin;
+    } else {
+        // in ssr without a set baseUrl, fallback
+        throw new Error(
+            "No baseUrl defined for constructing optimized image URLs in SSR."
+        );
     }
 
     // 1. If a custom loader is provided, convert width/quality to numbers.
@@ -83,9 +93,22 @@ export function buildOptimizedImageUrlForWidth(
     props: ImageProps,
     targetWidth: number
 ): string {
-    const base =
-        config.baseUrl ||
-        (typeof window !== "undefined" ? window.location.origin : "");
+    let base: string;
+
+    if (config.baseUrl && config.baseUrl.trim() !== "") {
+        base = config.baseUrl;
+    } else if (
+        typeof window !== "undefined" &&
+        window.location &&
+        window.location.origin
+    ) {
+        base = window.location.origin;
+    } else {
+        // in ssr without a set baseUrl, fallback
+        throw new Error(
+            "No baseUrl defined for constructing optimized image URLs in SSR."
+        );
+    }
 
     const url = new URL("/optimized-image", base);
     url.searchParams.set("src", props.src);
